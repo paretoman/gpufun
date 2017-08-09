@@ -1,8 +1,8 @@
 <html>
 <head></head>
 <body></body></html>
-<script src="newgpu/gpu.min.js"></script>
-<script src="newgpu/gpu-core.min.js"></script>
+<script src="gpu.js-develop/bin/gpu-core.js"></script>
+<script src="gpu.js-develop/bin/gpu.js"></script>
 <script>
 
 
@@ -12,6 +12,11 @@ const myFunc = gpu.createKernel(function() {
     return this.thread.x;
 }).setDimensions([100]);
     
-console.log(myFunc())
+x = myFunc()
+console.log(x)
+text = document.createElement("p")
+tdom = document.body.appendChild(text)
+tdom.innerHTML = gpu.getMode() + "<br>"+x.join("<br>")
 
+gpu.log
 </script>
