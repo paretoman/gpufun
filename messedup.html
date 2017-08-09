@@ -1,0 +1,17 @@
+<html>
+<head></head>
+<body></body></html>
+<script src="newgpu/gpu.min.js"></script>
+<script src="newgpu/gpu-core.min.js"></script>
+<script>
+
+
+const gpu = new GPU();
+
+const myFunc = gpu.createKernel(function() {
+    return this.thread.x;
+}).setDimensions([100]);
+    
+console.log(myFunc())
+
+</script>

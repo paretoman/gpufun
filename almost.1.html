@@ -1,0 +1,247 @@
+<html>
+<head></head>
+<body></body></html>
+<script src="gpu.js-develop/bin/gpu-core.js"></script>
+<script src="gpu.js-develop/bin/gpu.js"></script>
+<script>
+
+
+const gpu = new GPU();
+
+
+// make variables
+var lc = 5
+var lv = 2
+var li = 10 // 400
+var xf = []
+for (i =0;i<lc;i++) xf.push(Math.random())
+var xv=[]
+for (i =0;i<li;i++) {
+	var da = []
+	for (j =0;j<lv;j++) da.push(Math.random())
+	xv.push(da)
+}
+var yv=xv
+var yf=xf
+	
+
+
+
+const d = gpu.createKernel( function(xv, yv, xf, yf) {
+	var civ,i,v,c,d,dx,dy,ci
+	civ = this.thread.x
+	v = Math.floor((civ) / (lc*li)); // z
+	//v = civ / (lc*lv) >> 0
+	ci = civ - v * lc * li
+	//ci = civ % (lc*li)
+	i = Math.floor((ci) / lc)
+	//i = Math.floor(civ/lc)%li
+	//i = tmp / lc >> 0; // y
+	c = ci % lc; // x
+	//c=civ%lc
+	// d is indexed as civ
+
+	dx = xv[i][v] - xf[c]
+	dy = yv[i][v] - yf[c]
+	d = Math.sqrt(dx*dx + dy*dy)
+	return d
+}, {
+	dimensions: [lv*lc*li], // y,x
+	constants: {lv:lv,lc:lc,li:li}
+})
+
+
+var cube = d(xv, yv, xf, yf)
+//console.log(cube)
+
+
+
+const minCube = gpu.createKernel( function(d) {
+	var iv,civ,n,d1
+	iv = this.thread.x
+	
+	n=1000
+	for (var c = 0; c < lc; c++) {
+		civ = c + iv* lc
+		// d1 = d[c][i][v] // d at x,y,z
+		//(z * xMax * yMax) + (y * xMax) + x;
+	
+		d1 = d[civ]
+		if (d1 < n) {
+			n = d1 //min
+		}
+	}
+	return n
+}, {
+	dimensions: [lv*li*lc], // y,x
+	constants: {lv:lv,lc:lc,li:li}
+})
+
+var min = minCube(cube).slice(0,lv*li) // weird. we need to slice because there is something weird going on with the output dimensions
+console.log("min")
+console.log(min.slice(0,100))
+
+for (var iv=0; iv<li*lv; iv++) {
+	n=1000
+	for (var c = 0; c < lc; c++) {
+		civ = c + iv * lc
+		// d1 = d[c][i][v] // d at x,y,z
+		//(z * xMax * yMax) + (y * xMax) + x;
+	
+		d1 = cube[civ]
+		if (d1 < n) {
+			n = d1 //min
+		}
+	}
+	console.log(n)
+}
+
+// oh, heres a problem... 
+// gpu.js doesn't allow integers
+// so I can't index by anything other than this.thread.x
+
+
+const maxCube = gpu.createKernel( function(d) {
+	var iv,i,v,c,dx,dy,civ,n,m,d1
+	iv = this.thread.x
+
+	
+	m=0
+	for (var c = 0; c < lc; c++) {
+		civ = c + iv *lc
+		// d1 = d[c][i][v] // d at x,y,z
+		//(z * xMax * yMax) + (y * xMax) + x;
+		d1 = d[civ]
+		if (d1 > m) {
+			m = d1 //max
+		}
+	}
+	return m
+}, {
+	dimensions: [lv*li*lc], // y,x
+	constants: {lv:lv,lc:lc,li:li}
+})
+
+var max = maxCube(cube).slice(0,lv*li)
+console.log("max")
+console.log(max.slice(0,100))
+
+
+
+
+
+const doFnorm = gpu.createKernel(function(m,n) {
+	var iv = this.thread.x
+	var fnorm
+	//fnorm =  (m[iv]-n[iv])
+	fnorm = 1/ (m[iv]-n[iv])
+	return fnorm
+}, {
+	dimensions: [li*lv*lc], // weird that we need lc here
+})
+var fnorm = doFnorm(max,min).slice(0,li*lv)
+
+
+console.log("fnorm")
+console.log(fnorm.slice(0,100))
+for (i in fnorm) console.log(fnorm[i])
+
+
+
+
+const doScores = gpu.createKernel(function(d,m,n,fnorm, minscore, maxscore) {
+	var v,i,iv,civ,ci,normit,score
+	civ = this.thread.x
+
+	v = Math.floor(civ / (lc*li))
+	ci = civ - v*lc*li
+	i = Math.floor(ci / lc)
+	iv = v * li + i
+
+	//normit = (d[civ]-n[iv])*fnorm[iv] // indices must be wrong earlier
+	normit = (d[civ]-n[iv]) / (m[iv]-n[iv])  
+	score = Math.floor(.5+minscore+(maxscore-minscore)*(1-normit))
+	//return normit
+	return score
+}, {
+	dimensions: [lc*li*lv*lc],
+	constants: {lv:lv,lc:lc,li:li}
+})
+
+
+var scores = doScores(cube,max,min,fnorm,0,5).slice(0,lc*li*lv)
+console.log("scores")
+console.log(scores.slice(0,100))
+
+
+
+const doTally = gpu.createKernel(function(scores) {
+	var ci,civ,sum
+	ci = this.thread.x
+
+	sum = 0
+	for (var v = 0; v < lv; v++) {
+		civ = ci + v *lc*li + .1
+		//civ = c + i *lc + v *lc*li
+		sum += scores[civ]
+	}
+	return sum
+}, {
+	dimensions: [li*lc*lv], // weird that we need this extra lv dimension, which we remove later
+	constants: {lv:lv,lc:lc,li:li}
+})
+var tally = doTally(scores).slice(li*lc)
+console.log("tally")
+console.log(tally.slice(0,100))
+
+
+
+const findWinner = gpu.createKernel(function(tally) {
+	var i,ci,m,t1,mi
+	i = this.thread.x
+	m=0
+	mi = -1
+	for (var c = 0; c < lc; c++) {
+		ci = c + i * li + .1
+		t1 = tally[ci]
+		if(t1 > m) {
+			m = t1
+			mi = c
+		}
+	}
+	return mi
+}, {
+	dimensions: [li],
+	constants: {lv:lv,lc:lc,li:li}
+})
+var winner = findWinner(tally)
+console.log("winner")
+console.log(winner[li-1])
+
+
+
+
+const superKernel = gpu.combineKernels(d,minCube,maxCube,doFnorm,doScores,doTally,findWinner, function(xv,yv,xf,yf) {
+		var cube,min,max,fnorm,scores,tally,winner
+		cube = d(xv, yv, xf, yf)
+		min = minCube(cube)
+		max = maxCube(cube)
+		fnorm = doFnorm(max,min)
+		scores = doScores(cube,max,min,fnorm,5,0)
+		
+		tally = doTally(scores)
+		winner = findWinner(tally)
+		return winner
+	})
+var winner = superKernel(xv,yv,xf,yf);
+console.log("megawinner")
+console.log(winner)
+
+// for ( var j=0;j<100;j++) {
+// 	var winner = superKernel(xv,yv,xf,yf);
+// 	console.log(winner[0])
+// }
+console.log("done")
+
+	
+</script>

@@ -1,0 +1,95 @@
+<html>
+<head></head>
+<body></body></html>
+<script src="gpu.js-develop/bin/gpu-core.js"></script>
+<script src="gpu.js-develop/bin/gpu.js"></script>
+<script>
+
+
+// make variables
+var lc = 5
+var lv = 10
+var li = 1 // 400
+var xf = []
+for (i =0;i<lc;i++) xf.push(Math.random())
+var xv=[]
+for (i =0;i<li;i++) {
+	var da = []
+	for (j =0;j<lv;j++) da.push(Math.random())
+	xv.push(da)
+}
+var yv=xv
+var yf=xf
+const gpu = new GPU();
+	
+
+
+// compute
+
+const d = gpu.createKernel( function(xv, yv, xf, yf) {
+	var civ,i,v,c,d,dx,dy,ci
+	civ = this.thread.x
+	v = Math.floor((civ) / (lc*li)); // z
+	ci = civ - v * lc * li
+	i = Math.floor((ci) / lc)
+	c = ci % lc; // x
+
+	dx = xv[i][v] - xf[c]
+	dy = yv[i][v] - yf[c]
+	d = Math.sqrt(dx*dx + dy*dy)
+	return d
+}, {
+	dimensions: [lv*lc*li], // y,x
+	constants: {lv:lv,lc:lc,li:li}
+})
+
+
+var cube = d(xv, yv, xf, yf)
+//console.log(cube)
+
+
+
+const minCube = gpu.createKernel( function(d) {
+	var iv,civ,n,d1
+	iv = this.thread.x
+	
+	n=1000
+	for (var c = 0; c < lc; c++) {
+		civ = c + iv* lc
+		// d1 = d[c][i][v] // d at x,y,z
+		//(z * xMax * yMax) + (y * xMax) + x;
+	
+		d1 = d[civ]
+		if (d1 < n) {
+			n = d1 //min
+		}
+	}
+	return n
+}, {
+	dimensions: [lv*li*lc], // y,x
+	constants: {lv:lv,lc:lc,li:li}
+})
+
+var min = minCube(cube)
+console.log("min")
+console.log(min.slice(0,lv*li))
+
+
+
+for (var iv=0; iv<li*lv; iv++) {
+	n=1000
+	for (var c = 0; c < lc; c++) {
+		civ = c + iv * lc
+		// d1 = d[c][i][v] // d at x,y,z
+		//(z * xMax * yMax) + (y * xMax) + x;
+	
+		d1 = cube[civ]
+		if (d1 < n) {
+			n = d1 //min
+		}
+	}
+	console.log(n)
+}
+
+	
+</script>
