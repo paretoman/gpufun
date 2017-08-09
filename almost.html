@@ -8,7 +8,7 @@
 // make variables
 var lc = 5
 var lv = 2
-var li = 100 // 400
+var li = 10 // 400
 var xf = []
 for (i =0;i<lc;i++) xf.push(Math.random())
 var xv=[]
@@ -49,7 +49,7 @@ const d = gpu.createKernel( function(xv, yv, xf, yf) {
 
 
 var cube = d(xv, yv, xf, yf)
-//console.log(cube)
+//document.write("<br>"+cube)
 
 
 
@@ -75,8 +75,8 @@ const minCube = gpu.createKernel( function(d) {
 })
 
 var min = minCube(cube)
-console.log("min")
-console.log(min.slice(0,100))
+document.write("<br>"+"min")
+document.write("<br>"+min.slice(0,100))
 
 for (var iv=0; iv<li*lv; iv++) {
 	n=1000
@@ -90,7 +90,7 @@ for (var iv=0; iv<li*lv; iv++) {
 			n = d1 //min
 		}
 	}
-	console.log(n)
+	document.write("<br>"+n)
 }
 
 // oh, heres a problem... 
@@ -120,8 +120,8 @@ const maxCube = gpu.createKernel( function(d) {
 })
 
 var max = maxCube(cube)
-console.log("max")
-console.log(max[0])
+document.write("<br>"+"max")
+document.write("<br>"+max.slice(0,100))
 
 
 
@@ -139,8 +139,9 @@ const doFnorm = gpu.createKernel(function(m,n) {
 var fnorm = doFnorm(max,min)
 
 
-console.log("fnorm")
-console.log(fnorm[0])
+document.write("<br>"+"fnorm")
+document.write("<br>"+fnorm.slice(0,100))
+for (i in fnorm) document.write("<br>"+fnorm[i])
 
 
 
@@ -164,9 +165,9 @@ const doScores = gpu.createKernel(function(d,m,n,fnorm, minscore, maxscore) {
 })
 
 
-var scores = doScores(cube,max,min,fnorm,5,0)
-console.log("scores")
-console.log(scores[0])
+var scores = doScores(cube,max,min,fnorm,0,5)
+document.write("<br>"+"scores")
+document.write("<br>"+scores.slice(0,100))
 
 
 
@@ -186,8 +187,9 @@ const doTally = gpu.createKernel(function(scores) {
 	constants: {lv:lv,lc:lc,li:li}
 })
 var tally = doTally(scores)
-console.log("tally")
-console.log(tally[0])
+document.write("<br>"+"tally")
+document.write("<br>"+tally.slice(0,100))
+
 
 
 
@@ -210,8 +212,8 @@ const findWinner = gpu.createKernel(function(tally) {
 	constants: {lv:lv,lc:lc,li:li}
 })
 var winner = findWinner(tally)
-console.log("winner")
-console.log(winner[li-1])
+document.write("<br>"+"winner")
+document.write("<br>"+winner[li-1])
 
 
 
@@ -229,16 +231,16 @@ const superKernel = gpu.combineKernels(d,minCube,maxCube,doFnorm,doScores,doTall
 		return winner
 	})
 var winner = superKernel(xv,yv,xf,yf);
-console.log("megawinner")
-console.log(winner)
+document.write("<br>"+"megawinner")
+document.write("<br>"+winner)
 
 // for ( var j=0;j<100;j++) {
 // 	var winner = superKernel(xv,yv,xf,yf);
-// 	console.log(winner[0])
+// 	document.write("<br>"+winner[0])
 // }
-console.log("done")
+document.write("<br>"+"done")
 
-document.write(winner)
+document.write("<br>"+winner)
 
 	
 </script>
