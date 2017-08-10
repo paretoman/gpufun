@@ -1,7 +1,7 @@
 <html>
 <head></head>
 <body>
-	<table><tr><td id="left"></td><td id='right'></td></tr></table>
+	<table><tr><td id="left" style="vertical-align:top"></td><td id='right' style="vertical-align:top"></td></tr></table>
 </body></html>
 
 <script src="gpu.js-develop/bin/gpu-core.js"></script>
@@ -159,7 +159,7 @@ const doFnorm = gpu.createKernel(function(m,n) {
 	fnorm = 1/ (m[iv]-n[iv])
 	return fnorm
 }, {
-	dimensions: [li*lv],
+	dimensions: [li*lv*lc],
 })
 var fnormdone = doFnorm(max,min).slice(0,li*lv)
 
@@ -191,7 +191,7 @@ const doScores = gpu.createKernel(function(d,m,n,fnorm, minscore, maxscore) {
 	//return normit
 	return score
 }, {
-	dimensions: [lc*li*lv*lc],
+	dimensions: [lc*li*lv],
 	constants: {lv:lv,lc:lc,li:li}
 })
 
@@ -263,7 +263,7 @@ const findWinner = gpu.createKernel(function(tally) {
 	}
 	return mi
 }, {
-	dimensions: [li],
+	dimensions: [li*lv*lc],
 	constants: {lv:lv,lc:lc,li:li}
 })
 var winner = findWinner(tally)
