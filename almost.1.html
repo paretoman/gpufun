@@ -251,14 +251,14 @@ for (var ci = 0; ci< lc*li; ci++) {
 const findWinner = gpu.createKernel(function(tally) {
 	var i,ci,m,t1,mi
 	i = this.thread.x
-	m = 0
-	mi = 0
+	m = -1
+	mi = -1
 	for (var c = 0; c < lc; c++) {
-		ci = c + i * li
+		ci = c + i * lc
 		t1 = tally[ci]
 		if(t1 > m) {
 			m = t1
-			mi = c+1 // so we can catch errors
+			mi = c
 		}
 	}
 	return mi
@@ -277,7 +277,7 @@ for (var i = 0; i < li; i++) {
 	m = -1
 	mi = -1
 	for (var c = 0; c < lc; c++) {
-		ci = c + i * li
+		ci = c + i * lc
 		t1 = tally[ci]
 		if(t1 > m) {
 			m = t1
