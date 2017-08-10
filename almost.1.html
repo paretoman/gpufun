@@ -1,14 +1,20 @@
 <html>
 <head></head>
-<body></body></html>
+<body>
+	<table><tr><td id="left"></td><td id='right'></td></tr></table>
+</body></html>
+
 <script src="gpu.js-develop/bin/gpu-core.js"></script>
 <script src="gpu.js-develop/bin/gpu.js"></script>
 <script>
-
+var left = document.getElementById('left')
+var right = document.getElementById('right')
 
 const gpu = new GPU();
-document.write(gpu.getMode())
-document.write('horizontal is gpu output. vertical is true values.')
+left.innerHTML += gpu.getMode()
+left.innerHTML += 'left is gpu output. right is true values.'
+right.innerHTML += gpu.getMode()
+right.innerHTML += 'left is gpu output. right is true values.'
 
 // make variables
 var lc = 5
@@ -53,7 +59,7 @@ const d = gpu.createKernel( function(xv, yv, xf, yf) {
 
 
 var cube = d(xv, yv, xf, yf)
-//document.write("<br>"+cube)
+//left.innerHTML += "<br>"+cube
 
 
 
@@ -79,9 +85,9 @@ const minCube = gpu.createKernel( function(d) {
 })
 
 var min = minCube(cube).slice(0,lv*li) // weird. we need to slice because there is something weird going on with the output dimensions
-document.write("<br>"+"min")
-document.write("<br>"+min.slice(0,100))
-
+left.innerHTML += "<br>"+"min"
+left.innerHTML += "<br>"+min.slice(0,100).join("<br>")
+right.innerHTML += "<br>"+"min"
 for (var iv=0; iv<li*lv; iv++) {
 	n=1000
 	for (var c = 0; c < lc; c++) {
@@ -94,7 +100,7 @@ for (var iv=0; iv<li*lv; iv++) {
 			n = d1 //min
 		}
 	}
-	document.write("<br>"+n)
+	right.innerHTML += "<br>"+n
 }
 
 // oh, heres a problem... 
@@ -103,7 +109,7 @@ for (var iv=0; iv<li*lv; iv++) {
 
 
 const maxCube = gpu.createKernel( function(d) {
-	var iv,i,v,c,dx,dy,civ,n,m,d1
+	var iv,i,v,dx,dy,civ,n,m,d1
 	iv = this.thread.x
 
 	
@@ -124,9 +130,10 @@ const maxCube = gpu.createKernel( function(d) {
 })
 
 var max = maxCube(cube).slice(0,lv*li)
-document.write("<br>"+"max")
-document.write("<br>"+max.slice(0,100))
+left.innerHTML += "<br>"+"max"
+left.innerHTML += "<br>"+max.slice(0,100).join("<br>")
 
+right.innerHTML += "<br>"+"max"
 
 for (var iv=0; iv<li*lv; iv++) {
 	m=-1
@@ -140,7 +147,7 @@ for (var iv=0; iv<li*lv; iv++) {
 			m = d1 //min
 		}
 	}
-	document.write("<br>"+m)
+	right.innerHTML += "<br>"+m
 }
 
 
@@ -157,13 +164,14 @@ const doFnorm = gpu.createKernel(function(m,n) {
 var fnormdone = doFnorm(max,min).slice(0,li*lv)
 
 
-document.write("<br>"+"fnorm")
-document.write("<br>"+fnormdone.slice(0,100))
+left.innerHTML += "<br>"+"fnorm"
+left.innerHTML += "<br>"+fnormdone.slice(0,100).join("<br>")
 
+right.innerHTML += "<br>"+"fnorm"
 
 for (var iv=0; iv<li*lv; iv++) {
 	fnorm = 1/ (max[iv]-min[iv])
-	document.write("<br>"+fnorm)
+	right.innerHTML += "<br>"+fnorm
 }
 
 
@@ -188,9 +196,10 @@ const doScores = gpu.createKernel(function(d,m,n,fnorm, minscore, maxscore) {
 })
 
 var scores = doScores(cube,max,min,fnormdone,0,5).slice(0,lc*li*lv)
-document.write("<br>"+"scores")
-document.write("<br>"+scores.slice(0,100))
+left.innerHTML += "<br>"+"scores"
+left.innerHTML += "<br>"+scores.slice(0,100).join("<br>")
 
+right.innerHTML += "<br>"+"scores"
 maxscore=5
 minscore=0
 
@@ -204,7 +213,7 @@ for (var civ=0; civ<lc*li*lv; civ++) {
 	normit = (cube[civ]-min[iv]) / (max[iv]-min[iv])  
 	score = Math.floor(.5+minscore+(maxscore-minscore)*(1-normit))
 
-	document.write("<br>"+score)
+	right.innerHTML += "<br>"+score
 }
 
 const doTally = gpu.createKernel(function(scores) {
@@ -223,9 +232,10 @@ const doTally = gpu.createKernel(function(scores) {
 	constants: {lv:lv,lc:lc,li:li}
 })
 var tally = doTally(scores).slice(0,li*lc)
-document.write("<br>"+"tally")
-document.write("<br>"+tally.slice(0,100))
+left.innerHTML += "<br>"+"tally"
+left.innerHTML += "<br>"+tally.slice(0,100).join("<br>")
 
+right.innerHTML += "<br>"+"tally"
 
 for (var ci = 0; ci< lc*li; ci++) {
 	
@@ -235,7 +245,7 @@ for (var ci = 0; ci< lc*li; ci++) {
 		//civ = c + i *lc + v *lc*li
 		sum += scores[civ]
 	}
-	document.write("<br>"+sum)
+	right.innerHTML += "<br>"+sum
 }
 
 const findWinner = gpu.createKernel(function(tally) {
@@ -257,9 +267,10 @@ const findWinner = gpu.createKernel(function(tally) {
 	constants: {lv:lv,lc:lc,li:li}
 })
 var winner = findWinner(tally)
-document.write("<br>"+"winner")
-document.write("<br>"+winner)
+left.innerHTML += "<br>"+"winner"
+left.innerHTML += "<br>"+winner.join("<br>")
 
+right.innerHTML += "<br>"+"winner"
 
 for (var i = 0; i < li; i++) {
 	m = -1
@@ -272,7 +283,7 @@ for (var i = 0; i < li; i++) {
 			mi = c
 		}
 	}
-	document.write("<br>"+mi)
+	right.innerHTML += "<br>"+mi
 }
 
 
@@ -289,14 +300,17 @@ const superKernel = gpu.combineKernels(d,minCube,maxCube,doFnorm,doScores,doTall
 		return winner
 	})
 var winner = superKernel(xv,yv,xf,yf);
-document.write("<br>"+"megawinner")
-document.write("<br>"+winner)
+left.innerHTML += "<br>"+"megawinner"
+left.innerHTML += "<br>"+winner.join("<br>")
+right.innerHTML += "<br>"+"filler"
+right.innerHTML += "<br>"+winner.join("<br>")
 
 // for ( var j=0;j<100;j++) {
 // 	var winner = superKernel(xv,yv,xf,yf);
-// 	document.write("<br>"+winner[0])
+// 	left.innerHTML += "<br>"+winner[0])
 // }
-document.write("<br>"+"done")
+left.innerHTML += "<br>"+"done"
+right.innerHTML += "<br>"+"done"
 
 	
 </script>
