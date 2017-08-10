@@ -272,6 +272,7 @@ left.innerHTML += "<br>"+winner.join("<br>")
 
 right.innerHTML += "<br>"+"winner"
 
+miset=[]
 for (var i = 0; i < li; i++) {
 	m = -1
 	mi = -1
@@ -284,6 +285,7 @@ for (var i = 0; i < li; i++) {
 		}
 	}
 	right.innerHTML += "<br>"+mi
+	miset.push(mi)
 }
 
 
@@ -302,8 +304,8 @@ const superKernel = gpu.combineKernels(d,minCube,maxCube,doFnorm,doScores,doTall
 var winner = superKernel(xv,yv,xf,yf);
 left.innerHTML += "<br>"+"megawinner"
 left.innerHTML += "<br>"+winner.join("<br>")
-right.innerHTML += "<br>"+"filler"
-right.innerHTML += "<br>"+winner.join("<br>")
+right.innerHTML += "<br>"+"winner again"
+right.innerHTML += "<br>"+miset.join("<br>")
 
 // for ( var j=0;j<100;j++) {
 // 	var winner = superKernel(xv,yv,xf,yf);
