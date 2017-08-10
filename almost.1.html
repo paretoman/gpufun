@@ -266,7 +266,7 @@ const findWinner = gpu.createKernel(function(tally) {
 	dimensions: [li*lv*lc],
 	constants: {lv:lv,lc:lc,li:li}
 })
-var winner = findWinner(tally)
+var winner = findWinner(tally).slice(0,li)
 left.innerHTML += "<br>"+"winner"
 left.innerHTML += "<br>"+winner.join("<br>")
 
@@ -301,7 +301,7 @@ const superKernel = gpu.combineKernels(d,minCube,maxCube,doFnorm,doScores,doTall
 		winner = findWinner(tally)
 		return winner
 	})
-var winner = superKernel(xv,yv,xf,yf);
+var winner = superKernel(xv,yv,xf,yf).slice(0,li);
 left.innerHTML += "<br>"+"megawinner"
 left.innerHTML += "<br>"+winner.join("<br>")
 right.innerHTML += "<br>"+"winner again"
