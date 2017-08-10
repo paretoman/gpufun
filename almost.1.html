@@ -16,7 +16,19 @@ left.innerHTML += 'left is gpu output. right is true values.'
 right.innerHTML += gpu.getMode()
 right.innerHTML += 'left is gpu output. right is true values.'
 
+
+// i is instances
+// v is voters
+// c is candidates
+// l is a prefix for length of array
+
+// there are three constructors here to make the datasets.
+// 1. random voter and candidate positions
+// 2. raster a group of voters
+// 3. raster a candidate
+
 // make variables
+
 var lc = 5
 var lv = 2
 var li = 10 // 400
@@ -30,7 +42,10 @@ for (i =0;i<li;i++) {
 }
 var yv=xv
 var yf=xf
-	
+
+
+
+
 
 
 
@@ -81,6 +96,126 @@ for (var civ=0; civ<lc*li*lv; civ++) {
 	d2 = Math.sqrt(dx*dx + dy*dy)
 	right.innerHTML += "<br>"+d2
 }
+
+
+
+
+
+
+
+
+
+
+// make grid of instances, i
+WIDTH = 300
+HEIGHT = 300
+pixelsize = 30
+lix = WIDTH / pixelsize // called density
+liy = HEIGHT / pixelsize
+li = lix * liy
+
+
+
+
+
+
+
+
+
+
+var xc=xf
+var yc=yf
+
+
+votergrouptomove = 0 // edit this
+vg = [] // which group does the voter belong to?
+nvg = 3 // how many voter groups are there?
+for (j =0;j<lv;j++) vg.push(Math.floor(nvg*Math.random()))
+xvcenter = []
+for (j =0;j<nvg;j++) xvcenter.push(Math.random())
+yvcenter = xvcenter
+
+const cubeVoter = gpu.createKernel( function(xv,yv,xc,yc,xvcenter,yvcenter,vg,votergrouptomove,pixelsize,liy,lix){
+	var civ,i,v,c,d,dx,dy,ci,xnewv,ynewv,xnewvcenter,ynewvcenter
+
+	civ = this.thread.x
+	v = Math.floor(civ / (lc*li))
+	ci = civ - v * lc * li
+	i = Math.floor((ci) / lc)
+	c = ci % lc; // x
+
+
+	if (vg[v]==votergrouptomove){
+		xnewvcenter = pixelsize * i / liy // rounding is actually done in the gpu.js code, so I don't actually need it here.  otherwise I would put a Math.round on this
+		ynewvcenter = pixelsize * i % liy
+		// next, shift the center to this new center
+		xnewv = xv[v] + (xnewvcenter - xvcenter[votergrouptomove])
+		ynewv = yv[v] + (ynewvcenter - yvcenter[votergrouptomove])
+	} else {
+		xnewv = xv[v]
+		ynewv = yv[v]
+	}
+	dx = xc[c] - xnewv
+	dy = yc[c] - ynewv
+	d = Math.sqrt(dx*dx + dy*dy)
+	return d
+}, {
+	dimensions: [lv*lc*li], // y,x
+	constants: {lv:lv,lc:lc,li:li}
+})
+
+cubeV = cubeVoter(xv,yv,xc,yc,xvcenter,yvcenter,vg,votergrouptomove,pixelsize,liy,lix)
+
+
+left.innerHTML += "<br>"+"cubeV"
+left.innerHTML += "<br>"+cubeV.slice(0,100).join("<br>")
+
+
+
+
+
+
+
+
+candidatetomove = 0 // edit this
+
+var notcandidatetomove = []
+var boolcanmove = []
+for (i =0;i<lc;i++) {notcandidatetomove.push(i); boolcanmove.push(0) }
+notcandidatetomove.splice(candidatetomove,1)
+boolcanmove[candidatetomove]=1
+
+const cubeCandidate = gpu.createKernel( function(xv,yv,xc,yc,candidatetomove,pixelsize,liy,lix){
+	var civ,i,v,c,d,dx,dy,ci,xnewc,ynewc
+
+	civ = this.thread.x
+	v = Math.floor(civ / (lc*li))
+	ci = civ - v * lc * li
+	i = Math.floor((ci) / lc)
+	c = ci % lc; // x
+
+	//xnewc = xc[c] * (1-boolcanmove[c]) + xmoved * boolcanmove[c]
+	if (c==candidatetomove){
+		xnewc = pixelsize * i / liy // rounding is actually done in the gpu.js code, so I don't actually need it here.  otherwise I would put a Math.round on this
+		ynewc = pixelsize * i % liy
+	} else {
+		xnewc = xc[c]
+		ynewc = yc[c]
+	}
+	dx = xv[v] - xnewc
+	dy = yv[v] - ynewc
+	d = Math.sqrt(dx*dx + dy*dy)
+	return d
+}, {
+	dimensions: [lv*lc*li], // y,x
+	constants: {lv:lv,lc:lc,li:li}
+})
+
+cubeC = cubeCandidate(xv,yv,xc,yc,candidatetomove,pixelsize,liy,lix)
+
+left.innerHTML += "<br>"+"cubeC"
+left.innerHTML += "<br>"+cubeC.slice(0,100).join("<br>")
+
 
 
 const minCube = gpu.createKernel( function(d) {
@@ -169,6 +304,7 @@ for (var iv=0; iv<li*lv; iv++) {
 	}
 	right.innerHTML += "<br>"+m
 }
+
 
 
 
