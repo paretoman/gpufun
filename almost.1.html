@@ -228,7 +228,7 @@ const doTally = gpu.createKernel(function(scores) {
 	}
 	return sum
 }, {
-	dimensions: [li*lc], // weird that we need this extra lv dimension, which we remove later
+	dimensions: [li*lc*lv], // weird that we need this extra lv dimension, which we remove later
 	constants: {lv:lv,lc:lc,li:li}
 })
 var tally = doTally(scores).slice(0,li*lc)
