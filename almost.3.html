@@ -7,6 +7,10 @@
 <script src="gpu.js-develop/bin/gpu-core.js"></script>
 <script src="gpu.js-develop/bin/gpu.js"></script>
 <script>
+
+// this was just an attempt to see what happens if the functions only run once
+var onlylast = true
+
 var left = document.getElementById('left')
 var right = document.getElementById('right')
 
@@ -290,7 +294,7 @@ for (var i = 0; i < li; i++) {
 	miset.push(mi)
 }
 
-
+if (onlylast) {
 const superKernel = gpu.combineKernels(d,minCube,maxCube,doFnorm,doScores,doTally,findWinner, function(xv,yv,xf,yf) {
 		//var cube,min,max,fnorm,scores,tally,winner
 		cube1 = d(xv, yv, xf, yf)
@@ -308,13 +312,13 @@ left.innerHTML += "<br>"+"megawinner"
 left.innerHTML += "<br>"+winner.join("<br>")
 right.innerHTML += "<br>"+"winner again"
 right.innerHTML += "<br>"+miset.join("<br>")
-
+}
 // for ( var j=0;j<100;j++) {
 // 	var winner = superKernel(xv,yv,xf,yf);
 // 	left.innerHTML += "<br>"+winner[0])
 // }
 
-
+if(onlylast){
 cube2 = d(xv, yv, xf, yf)
 const superKernel2 = gpu.combineKernels(minCube,maxCube,doFnorm,doScores,doTally,findWinner, function(cube2) {
 		return findWinner(doTally(doScores(cube2,maxCube(cube2),minCube(cube2),doFnorm(maxCube(cube2),minCube(cube2)),5,0)))
@@ -324,7 +328,7 @@ left.innerHTML += "<br>"+"megawinner2"
 left.innerHTML += "<br>"+winner2.join("<br>")
 right.innerHTML += "<br>"+"winner again"
 right.innerHTML += "<br>"+miset.join("<br>")
-
+}
 // third try
 
 cube3 = d(xv, yv, xf, yf)
