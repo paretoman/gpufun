@@ -61,6 +61,26 @@ const d = gpu.createKernel( function(xv, yv, xf, yf) {
 var cube = d(xv, yv, xf, yf)
 //left.innerHTML += "<br>"+cube
 
+left.innerHTML += "<br>"+"cube"
+left.innerHTML += "<br>"+cube.slice(0,100).join("<br>")
+right.innerHTML += "<br>"+"cube"
+for (var civ=0; civ<lc*li*lv; civ++) {
+	v = Math.floor((civ) / (lc*li)); // z
+	//v = civ / (lc*lv) >> 0
+	ci = civ - v * lc * li
+	//ci = civ % (lc*li)
+	i = Math.floor((ci) / lc)
+	//i = Math.floor(civ/lc)%li
+	//i = tmp / lc >> 0; // y
+	c = ci % lc; // x
+	//c=civ%lc
+	// d is indexed as civ
+
+	dx = xv[i][v] - xf[c]
+	dy = yv[i][v] - yf[c]
+	d2 = Math.sqrt(dx*dx + dy*dy)
+	right.innerHTML += "<br>"+d2
+}
 
 
 const minCube = gpu.createKernel( function(d) {
