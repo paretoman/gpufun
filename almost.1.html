@@ -310,16 +310,16 @@ for (var i = 0; i < li; i++) {
 
 
 const superKernel = gpu.combineKernels(d,minCube,maxCube,doFnorm,doScores,doTally,findWinner, function(xv,yv,xf,yf) {
-		var cube,min,max,fnorm,scores,tally,winner
-		cube = d(xv, yv, xf, yf)
-		min = minCube(cube)
-		max = maxCube(cube)
-		fnorm = doFnorm(max,min)
-		scores = doScores(cube,max,min,fnorm,5,0)
+		//var cube,min,max,fnorm,scores,tally,winner
+		cube1 = d(xv, yv, xf, yf)
+		min1 = minCube(cube1)
+		max1 = maxCube(cube1)
+		fnorm1 = doFnorm(max1,min1)
+		scores1 = doScores(cube1,max1,min1,fnorm1,5,0)
 		
-		tally = doTally(scores)
-		winner = findWinner(tally)
-		return winner
+		tally1 = doTally(scores1)
+		winner1 = findWinner(tally1)
+		return winner1
 	})
 var winner = superKernel(xv,yv,xf,yf).slice(0,li);
 left.innerHTML += "<br>"+"megawinner"
