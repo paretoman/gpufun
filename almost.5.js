@@ -1,6 +1,7 @@
-showoutput = false
-makedata = false
+showoutput = true
+makedata = true
 var onlylast = true
+docubevc = false
 
 if(showoutput){
 
@@ -9,7 +10,7 @@ var right = document.getElementById('right')
 }
 const gpu = new GPU();
 
-if(runoutput){
+if(showoutput){
 
 left.innerHTML += gpu.getMode()
 left.innerHTML += 'left is gpu output. right is true values.'
@@ -77,7 +78,7 @@ const d = gpu.createKernel( function(xv, yv, xf, yf) {
 })
 
 
-if(runoutput){
+if(showoutput){
 
 var cube = d(xv, yv, xf, yf)
 //left.innerHTML += "<br>"+cube
@@ -85,7 +86,7 @@ var cube = d(xv, yv, xf, yf)
 left.innerHTML += "<br>"+"cube"
 left.innerHTML += "<br>"+cube.slice(0,100).join("<br>")
 right.innerHTML += "<br>"+"cube"
-
+}
 function dJ(xv,yv,xf,yf,lc,li,lv) {
 cube=[]
 for (var civ=0; civ<lc*li*lv; civ++) {
@@ -114,7 +115,7 @@ cube =  dJ(xv,yv,xf,yf,lc,li,lv)
 
 
 
-
+if(docubevc) {
 
 
 
@@ -230,6 +231,8 @@ left.innerHTML += "<br>"+"cubeC"
 left.innerHTML += "<br>"+cubeC.slice(0,100).join("<br>")
 
 
+}
+
 
 const minCube = gpu.createKernel( function(d) {
 	var iv,civ,n,d1
@@ -326,7 +329,7 @@ for (var iv=0; iv<li*lv; iv++) {
 	right.innerHTML += "<br>"+m
 	max.push(m)
 }
-return m
+return max
 }
 max = maxCubeJ(cube,lc,li,lv)
 
@@ -488,7 +491,7 @@ return miset
 }
 miset = findWinnerJ(tally,lc,li,lv)
 
-
+if (!onlylast) {
 const superKernel = gpu.combineKernels(d,minCube,maxCube,doFnorm,doScores,doTally,findWinner, function(xv,yv,xf,yf) {
 		var cube,min,max,fnorm,scores,tally,winner
 		cube = d(xv, yv, xf, yf)
@@ -511,6 +514,62 @@ right.innerHTML += "<br>"+miset.join("<br>")
 // 	var winner = superKernel(xv,yv,xf,yf);
 // 	left.innerHTML += "<br>"+winner[0])
 // }
+
+cube2 = d(xv, yv, xf, yf)
+const superKernel2 = gpu.combineKernels(minCube,maxCube,doFnorm,doScores,doTally,findWinner, function(cube2) {
+		return findWinner(doTally(doScores(cube2,maxCube(cube2),minCube(cube2),doFnorm(maxCube(cube2),minCube(cube2)),5,0)))
+	})
+var winner2 = superKernel2(cube2).slice(0,li);
+left.innerHTML += "<br>"+"megawinner2"
+left.innerHTML += "<br>"+winner2.join("<br>")
+right.innerHTML += "<br>"+"winner again"
+right.innerHTML += "<br>"+miset.join("<br>")
+}
+// third try
+
+function cubeToWinner(xv,yv,xf,yf) {
+cube3 = d(xv, yv, xf, yf)
+min3 = minCube(cube3)
+max3 = maxCube(cube3)
+fnorm3 = doFnorm(max3,min3)
+scores3 = doScores(cube3,max3,min3,fnorm3,5,0)
+
+tally3 = doTally(scores3)
+winner3 = findWinner(tally3).slice(0,li);
+return winner3
+}
+winner3 = cubeToWinner(xv,yv,xf,yf)
+
+
+
+
+
+left.innerHTML += "<br>"+"lessmegawinner3"
+left.innerHTML += "<br>"+winner3.join("<br>")
+right.innerHTML += "<br>"+"winner again"
+right.innerHTML += "<br>"+miset.join("<br>")
+
+
+function cubeToWinnerJ(xv,yv,xf,yf,lc,li,lv) {
+cube3 = dJ(xv, yv, xf, yf,lc,li,lv)
+min3 = minCubeJ(cube3,lc,li,lv)
+max3 = maxCubeJ(cube3,lc,li,lv)
+fnorm3 = doFnormJ(max3,min3,lc,li,lv)
+scores3 = doScoresJ(cube3,max3,min3,fnorm3,5,0,lc,li,lv)
+
+tally3 = doTallyJ(scores3,lc,li,lv)
+winner3 = findWinnerJ(tally3,lc,li,lv)
+return winner3
+}
+winner4 = cubeToWinnerJ(xv,yv,xf,yf,lc,li,lv)
+
+left.innerHTML += "<br>"+"lessmegawinner3 again"
+left.innerHTML += "<br>"+winner3.join("<br>")
+right.innerHTML += "<br>"+"winner megaJ"
+right.innerHTML += "<br>"+winner4.join("<br>")
+
+
+
 left.innerHTML += "<br>"+"done"
 right.innerHTML += "<br>"+"done"
 	
