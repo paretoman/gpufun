@@ -338,10 +338,28 @@ const superKernel2 = gpu.combineKernels(minCube,maxCube,doFnorm,doScores,doTally
 		return findWinner(doTally(doScores(cube2,maxCube(cube2),minCube(cube2),doFnorm(maxCube(cube2),minCube(cube2)),5,0)))
 	})
 var winner2 = superKernel2(cube2).slice(0,li);
-left.innerHTML += "<br>"+"megawinner"
+left.innerHTML += "<br>"+"megawinner2"
 left.innerHTML += "<br>"+winner2.join("<br>")
 right.innerHTML += "<br>"+"winner again"
 right.innerHTML += "<br>"+miset.join("<br>")
+
+// third try
+
+cube3 = d(xv, yv, xf, yf)
+min3 = minCube(cube3)
+max3 = maxCube(cube3)
+fnorm3 = doFnorm(max3,min3)
+scores3 = doScores(cube3,max3,min3,fnorm3,5,0)
+
+tally3 = doTally(scores3)
+winner3 = findWinner(tally3).slice(0,li);
+
+
+left.innerHTML += "<br>"+"lessmegawinner3"
+left.innerHTML += "<br>"+winner3.join("<br>")
+right.innerHTML += "<br>"+"winner again"
+right.innerHTML += "<br>"+miset.join("<br>")
+
 
 
 left.innerHTML += "<br>"+"done"
