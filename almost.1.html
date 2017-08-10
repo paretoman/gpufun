@@ -217,14 +217,14 @@ for (var civ=0; civ<lc*li*lv; civ++) {
 }
 
 const doTally = gpu.createKernel(function(scores) {
-	var ci,civ,sum
+	var ci,sum
 	ci = this.thread.x
-
 	sum = 0
 	for (var v = 0; v < lv; v++) {
-		civ = ci + v *lc*li
+		//var civ = ci + v *lc*li
 		//civ = c + i *lc + v *lc*li
-		sum += scores[civ]
+		//sum += scores[civ]
+		sum += scores[ci + v *lc*li]
 	}
 	return sum
 }, {
