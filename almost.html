@@ -330,6 +330,19 @@ right.innerHTML += "<br>"+miset.join("<br>")
 // 	var winner = superKernel(xv,yv,xf,yf);
 // 	left.innerHTML += "<br>"+winner[0])
 // }
+
+
+cube2 = d(xv, yv, xf, yf)
+const superKernel2 = gpu.combineKernels(minCube,maxCube,doFnorm,doScores,doTally,findWinner, function(cube2) {
+		return findWinner(doTally(doScores(cube2,maxCube(cube2),minCube(cube2),doFnorm(maxCube(cube2),minCube(cube2)),5,0)))
+	})
+var winner2 = superKernel2(cube2).slice(0,li);
+left.innerHTML += "<br>"+"megawinner"
+left.innerHTML += "<br>"+winner2.join("<br>")
+right.innerHTML += "<br>"+"winner again"
+right.innerHTML += "<br>"+miset.join("<br>")
+
+
 left.innerHTML += "<br>"+"done"
 right.innerHTML += "<br>"+"done"
 
